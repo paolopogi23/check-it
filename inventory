@@ -1,0 +1,5 @@
+localhost
+[webclient]
+ansible1.example.com
+[webserver]
+ansible2.example.com

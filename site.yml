@@ -1,0 +1,19 @@
+---
+- hosts: webclient
+  vars_files:
+  - vars/web.yml
+  tasks:
+  - name: include tasks
+    include: webclient.yml
+
+- hosts: webserver
+  vars_files:
+  - vars/web.yml
+  tasks:
+  - name: include tasks
+    include: webserver.yml
+  handlers:
+  - name: restart httpd
+    service: name=httpd state=restarted
+    listen: restart httpd
+   

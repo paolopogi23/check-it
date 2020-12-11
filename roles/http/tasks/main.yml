@@ -1,0 +1,44 @@
+---
+- name: Install webclient
+  yum:
+    name: "{{ web_client }}"
+    state: latest
+  when: "'webclient' in group_names"
+
+- name: server block
+  block:
+  - name: Install web server httpd
+    yum:
+      name: "{{ web_server }}"
+      state: latest
+
+  - name: Install firewalld
+    yum:
+      name: firewalld
+      state: latest
+
+  - name: Enable firewalld
+    service:
+      name: firewalld
+      state: started
+      enabled: yes
+
+  - name: Enabled httpd service
+    firewalld:
+      service: http
+      permanent: yes
+      immediate: yes
+      state: enabled
+
+  - name: Template for j2
+    template:
+      src: templates/httpd.j2
+      dest: "{{ web_config_file }}"
+    notify: restart httpd
+
+  - name: Enable and start services for httpd
+    service:
+      name: httpd
+      state: started
+      enabled: yes
+  when: "'webserver' in group_names"

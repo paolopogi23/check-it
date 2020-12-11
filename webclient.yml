@@ -1,0 +1,5 @@
+---
+- name: install curl package
+  yum:
+    name: "{{ web_client }}"
+    state: latest

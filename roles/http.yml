@@ -1,0 +1,52 @@
+---
+- name: httpd role
+  hosts: webclient,webserver
+  roles:
+  - http
+
+- name: storage tasks
+  hosts: webserver
+  vars:
+    Web_dir: /web
+    Selinux_type: httpd_sys_content_t
+    Web_file: /web/index.html
+
+  tasks:
+  - name: setup disk /dev/sdb
+    command: parted --script /dev/sdb mklabel gpt mkpart primary 1MiB 100%
+    ignore_errors: yes
+
+  - name: create fs
+    filesystem:
+      fstype: ext4
+      dev: /dev/sdb1
+      force: yes
+
+  - name: create mount point
+    file:
+      path: "{{ Web_dir }}"
+      state: directory
+
+  - name: mount new partition on /web
+    mount:
+      path: "{{ Web_dir }}"
+      src: /dev/sdb1
+      state: mounted
+      fstype: ext4
+  - name: set selinux
+    sefcontext:
+      target: "{{ Web_dir }}/(/.*)?'"
+      setype: "{{ Selinux_type }}"
+      state: present
+
+  - name: Create file
+    file:
+      path: "{{ Web_file }}"
+      state: touch
+  - name: Lineinfile
+    lineinfile:
+      path: "{{ Web_file }}"
+      line: "Welcome to my custom web server"
+
+  - name: restorecon selinux
+    command:  restorecon -irv "{{ Web_dir }}"
